@@ -1,6 +1,7 @@
 import requests
 import json
 import argparse
+import base64
 
 def test_GenerateDataKey(base_url, headers):
     print('====================test_GenerateDataKey start===========================')
@@ -102,6 +103,8 @@ def test_AES128(base_url, headers):
     print('Decrypt req:\n%s\n' %(decrypt_req))
     decrypt_res = requests.post(url=base_url + "Decrypt", data=json.dumps(decrypt_req), headers=headers)
     print('Decrypt resp:\n%s\n' %(decrypt_res.text))
+    plaintext = str(base64.b64decode(json.loads(decrypt_res.text)['result']['plaintext_base64']), 'utf-8')
+    print('Decrypt plaintext:\n%s\n' %(plaintext))
     print('====================test_AES128 end===========================')
 
 def get_args():

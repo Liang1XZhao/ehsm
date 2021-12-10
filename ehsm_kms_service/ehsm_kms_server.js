@@ -101,7 +101,6 @@ const ehsm_napi = ffi.Library('./libehsmnapi',{
     .createdate
         -Reserved
     Note: the CMK will be wrapped by the DK(DomainKey)
-
     params 
      - keyspec: int
      - origin: int
@@ -120,7 +119,6 @@ const ehsm_napi = ffi.Library('./libehsmnapi',{
     NAPI_Encrypt 
     Description:
      Encrypt an arbitrary set of bytes using the CMK.(only support symmetric types)
-
     params
      - cmk_base64: string
      - plaintext: string
@@ -141,7 +139,6 @@ const ehsm_napi = ffi.Library('./libehsmnapi',{
     NAPI_Decrypt 
     Description:
       Decrypts ciphertext using the CMK.(only support symmetric types)
-
     params
      - cmk_base64: string
      - ciphertext: string
@@ -168,7 +165,6 @@ const ehsm_napi = ffi.Library('./libehsmnapi',{
     plaintext data from memory as soon as possible.
     when you want to obtain the plaintext of datakey again, you can call the Decrypt with the
     cmk to get the plaintext data.
-
     params 
      - cmk_base64: string
      - keylen： string
@@ -186,9 +182,25 @@ const ehsm_napi = ffi.Library('./libehsmnapi',{
    */
   'NAPI_GenerateDataKey': ['string',['string', 'int', 'string']],
 
+  /*
+  create the enclave
+  */
+
+  'NAPI_Initialize':['string',[]],
+  
+  /*
+  destory the enclave
+  */
+  'NAPI_Finalize':['string', []],
+
 });
 
+const NAPI_Initialize = ehsm_napi.NAPI_Initialize();
 
+if(JSON.parse(NAPI_Initialize)['code'] != 200) {
+  console.log('service Initialize exception!')
+	process.exit(0);
+}
 // base64 encode
 const base64_encode = (str) => new Buffer.from(str).toString('base64')
 // base64 decode
@@ -206,12 +218,7 @@ const napi_result = (action, res, params) => {
   try {
     // r : NAPI_(*) Return results
     const r = JSON.parse(ehsm_napi[`NAPI_${action}`](...params));
-    if(action == apis.Decrypt && r.code == 200){
-      r.result.plaintext_base64 = base64_decode(r.result.plaintext_base64);
-      res.send(r)
-    } else {
-      res.send(r);
-    }
+    res.send(r)
   } catch (e) {
     res.send(result(400, e))
   }
@@ -258,6 +265,12 @@ app.post('/ehsm', function (req, res) {
   }
 })
 
+process.on('SIGINT', function() {
+  console.log('ehsm kms service exit')
+  ehsm_napi.NAPI_Finalize();
+	process.exit(0);
+});
+
 const  getIPAdress = () => {
   var interfaces = require('os').networkInterfaces();　　
   for (var devName in interfaces) {　　　　
@@ -274,4 +287,3 @@ const  getIPAdress = () => {
 app.listen(port, () => {
   console.log(`ehsm_ksm_service application listening at ${getIPAdress()}:${port}`)
 })
-
