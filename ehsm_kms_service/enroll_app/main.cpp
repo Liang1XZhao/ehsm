@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <curl/curl.h>
 #include "../../include/json/json.h"
@@ -41,17 +42,23 @@
 #include<error.h>
 
 #include "sgx_quote_3.h"
-// #include <sgx_uae_launch.h>
 #include "sgx_urts.h"
 #include "sgx_ql_quote.h"
 #include "sgx_dcap_quoteverify.h"
 
 #include "../../dkeyserver/App/ecp.h"
-#include "../sample_libcrypto/sample_libcrypto.h"
 #include "../../dkeyserver/App/socket_server.h"
 #include "../../dkeyserver/App/rand.h"
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <net/if.h>
 
 using namespace std;
+
+#define POSTNUMBER 9000
 static sp_db_item_t g_sp_db;
 
 #ifndef SAMPLE_FEBITSIZE
@@ -162,6 +169,29 @@ static char* StringToChar(string str)
     return retChar;
 }
 
+char* readFileJson()
+{
+    Json::Reader reader;
+    Json::Value root;
+    string ipaddr;
+
+    ifstream in("config.json", ios::binary);
+    if (!in.is_open()){
+        cout << "Error opening file\n";
+        return nullptr;
+    }
+    if (reader.parse(in, root)){
+        ipaddr = root["ipAddr"].asString();
+        cout << "Reading Complete!" << endl;
+    }
+    else{
+        cout << "parse error\n" << endl;
+    }
+    in.close();
+    return StringToChar(ipaddr);
+}
+
+
 // curl callback func
 size_t req_reply(void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -188,7 +218,10 @@ int main(int argc, char* argv[])
         printf("curl init error");
         return ret;
     }
-    curl_easy_setopt(curl, CURLOPT_URL, "http://10.112.240.122:9001/ehsm?Action=RA_HANDSHAKE_MSG0");
+
+    char* ipAdd = readFileJson();
+    printf("ipAdd : %s\n", ipAdd);
+    curl_easy_setopt(curl, CURLOPT_URL, ipAdd);
     struct curl_slist* header_list = nullptr;
     header_list = curl_slist_append(header_list, "Content-Type:application/json; charset=UTF-8");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
