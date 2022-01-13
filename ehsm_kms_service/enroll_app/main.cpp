@@ -182,7 +182,7 @@ char* readFileJson()
     }
     if (reader.parse(in, root)){
         ipaddr = root["ipAddr"].asString();
-S    }
+    }
     else{
         cout << "parse error\n" << endl;
     }
