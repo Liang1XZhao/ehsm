@@ -81,7 +81,7 @@ all: $(App_Name)
 	@$(MAKE) target
 	@mkdir -p $(OUT)
 	@mv $(App_Name) $(OUT)
-	@mv config.json $(OUT)
+	@cp config.json $(OUT)
 
 ifeq ($(Build_Mode), HW_RELEASE)
 target: $(App_Name)

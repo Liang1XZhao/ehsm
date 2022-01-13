@@ -58,7 +58,6 @@
 
 using namespace std;
 
-#define POSTNUMBER 9000
 static sp_db_item_t g_sp_db;
 
 #ifndef SAMPLE_FEBITSIZE
@@ -232,11 +231,20 @@ int main(int argc, char* argv[])
     // set post data.
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, StringToChar(jsonPost));
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, jsonPost.size());
-    CURLcode res = curl_easy_perform(curl);
-    if(res != CURLE_OK) {
-        printf("curl easy perform error res = %d\n", res);
-        return ret;
+    for (size_t i = 0; i < 100; i++)
+    {
+        response.clear();
+        /* code */
+        CURLcode res = curl_easy_perform(curl);
+        cout << i <<":"<< response <<endl;
+        sleep(1);
     }
+    
+    // CURLcode res = curl_easy_perform(curl);
+    // if(res != CURLE_OK) {
+    //     printf("curl easy perform error res = %d\n", res);
+    //     return ret;
+    // }
 
     // parse json str.
     Json::CharReaderBuilder builder;

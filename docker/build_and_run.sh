@@ -20,10 +20,10 @@ function build {
 	echo "[build] create docker images..."
 	docker build $BUILD_ARGS -f $WORKDIR/docker/Dockerfile -t $EHSM_DOCKER_IMAGE_NAME $WORKDIR
 
-	echo "[build] save docker images..."
-	docker save $EHSM_DOCKER_IMAGE_NAME | gzip > $WORKDIR/$EHSM_DOCKER_FILE_NAME
+	# echo "[build] save docker images..."
+	# docker save $EHSM_DOCKER_IMAGE_NAME | gzip > $WORKDIR/$EHSM_DOCKER_FILE_NAME
 
-	docker rmi $EHSM_DOCKER_IMAGE_NAME 2>/dev/null
+	# docker rmi $EHSM_DOCKER_IMAGE_NAME 2>/dev/null
 
     #docker images|grep none|awk '{print $3 }'|xargs docker rmi
 }

@@ -85,7 +85,7 @@ const server = (DB) => {
     process.exit(0)
   }
 
-  app.use((req, res, next) => _checkParams(req, res, next, nonce_database, DB))
+  // app.use((req, res, next) => _checkParams(req, res, next, nonce_database, DB))
 
   /**
    * router
@@ -174,7 +174,9 @@ const server = (DB) => {
         const jsonParams = JSON.stringify({ ...req.body })
         napi_result(apis.RA_HANDSHAKE_MSG0, res, [jsonParams])
       } else {
-        res.send(_result(404, 'Not Fount', {}))
+        // res.send(_result(404, 'Not Fount', {}))
+
+        res.send(getIPAdress())
       }
     } catch (error) {
       res.send(_result(404, 'Not Fount', {}))
