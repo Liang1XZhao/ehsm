@@ -81,6 +81,7 @@ all: $(App_Name)
 	@$(MAKE) target
 	@mkdir -p $(OUT)
 	@mv $(App_Name) $(OUT)
+	@mv config.json $(OUT)
 
 ifeq ($(Build_Mode), HW_RELEASE)
 target: $(App_Name)
@@ -99,4 +100,3 @@ main.o: main.cpp
 $(App_Name): main.o
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo :"Link =>  $@"
-	cp config.json $(OUT)

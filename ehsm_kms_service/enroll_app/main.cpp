@@ -182,8 +182,7 @@ char* readFileJson()
     }
     if (reader.parse(in, root)){
         ipaddr = root["ipAddr"].asString();
-        cout << "Reading Complete!" << endl;
-    }
+S    }
     else{
         cout << "parse error\n" << endl;
     }
@@ -220,7 +219,7 @@ int main(int argc, char* argv[])
     }
 
     char* ipAdd = readFileJson();
-    printf("ipAdd : %s\n", ipAdd);
+
     curl_easy_setopt(curl, CURLOPT_URL, ipAdd);
     struct curl_slist* header_list = nullptr;
     header_list = curl_slist_append(header_list, "Content-Type:application/json; charset=UTF-8");
