@@ -1,30 +1,35 @@
-FROM ubuntu:18.04 as sample
+FROM ehsm_kms_base:latest
 
-RUN apt-get update && apt-get install -y \
-    vim \
-    autoconf \
-    automake \
-    build-essential \
-    cmake \
-    curl \
-    debhelper \
-    git \
-    libcurl4-openssl-dev \
-    libprotobuf-dev \
-    libssl-dev \
-    libtool \
-    lsb-release \
-    ocaml \
-    ocamlbuild \
-    protobuf-compiler \
-    python \
-    wget \
-    libcurl4 \
-    libprotobuf10 \
-    libssl1.1 \
-    make \
-    module-init-tools \
-    g++
+# FROM ubuntu:18.04 as sample
+
+# RUN apt-get update && apt-get install -y \
+#     vim \
+#     autoconf \
+#     automake \
+#     build-essential \
+#     cmake \
+#     curl \
+#     debhelper \
+#     git \
+#     libcurl4-openssl-dev \
+#     libprotobuf-dev \
+#     libssl-dev \
+#     libtool \
+#     lsb-release \
+#     ocaml \
+#     ocamlbuild \
+#     protobuf-compiler \
+#     python \
+#     wget \
+#     libcurl4 \
+#     libprotobuf10 \
+#     libssl1.1 \
+#     make \
+#     module-init-tools \
+#     g++ \
+#     zip \
+#     unzip \
+#     tar
 
 # Install the SDK
 WORKDIR /opt/intel
@@ -54,9 +59,17 @@ RUN apt-get update &&apt-get install -y \
 
 # Build App from source
 WORKDIR /home
-RUN git clone https://github.com/intel/ehsm.git \
-   && cd ehsm \
-   && make
+RUN git clone https://github.com/microsoft/vcpkg.git \
+    && git clone -b enroll_M0 https://github.com/Liang1XZhao/ehsm.git \
+    && cd vcpkg \
+    && ./bootstrap-vcpkg.sh \
+    && ./vcpkg integrate install \
+    && ./vcpkg install jsoncpp \
+    && cp ./installed/x64-linux/lib/libjsoncpp.a /usr/local/lib \
+    && cp -r ./installed/x64-linux/include/json /home/ehsm/include \
+    && cp -r /usr/include/x86_64-linux-gnu/curl /home/ehsm/include \
+    && cd ../ehsm \
+    && make
 
 # Install node & npm packages
 RUN wget https://nodejs.org/dist/v16.13.0/node-v16.13.0-linux-x64.tar.xz \

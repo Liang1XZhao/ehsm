@@ -32,6 +32,15 @@
 #ifndef _EHSM_NAPI_H
 #define _EHSM_NAPI_H
 
+#include "../../dkeycache/App/sample_ra_msg.h"
+// Needed to create enclave and do ecall.
+#include "sgx_urts.h"
+#include "datatypes.h"
+// Needed to call untrusted key exchange library APIs, i.e. sgx_ra_proc_msg2.
+#include "sgx_ukey_exchange.h"
+#include "sgx_tkey_exchange.h"
+#include <json/json.h>
+
 using namespace std;
 
 extern "C" {
@@ -321,6 +330,13 @@ char* NAPI_Verify(const char* cmk_base64,
         const char* digest,
         const char* signature_base64);
 
+/*
+*/
+char* NAPI_RA_HANDSHAKE_MSG0(const char* request);
+
+// char* NAPI_RA_HANDSHAKE_MSG2(const char* request);
+
+// char* NAPI_RA_GET_API_KEY(const char* request);
 
 }  // extern "C"
 

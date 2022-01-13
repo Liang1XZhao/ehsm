@@ -32,10 +32,12 @@
 #include "base64.h"
 #include "ehsm_napi.h"
 #include "serialize.h"
+#include "enclave_hsm_u.h"
 
 using namespace std;
 using namespace EHsmProvider;
 
+sgx_enclave_id_t g_enclave_id;
 
 extern "C" {
 
@@ -1123,5 +1125,111 @@ out:
     SAFE_FREE(cipher_datakey_new.data);
     return retJsonObj.toChar();
 }
+
+/* 
+
+*/
+char* NAPI_RA_HANDSHAKE_MSG0(const char* request)
+{
+    sgx_status_t status = SGX_SUCCESS;
+    int enclave_lost_retry_time = 1;
+    sgx_ra_context_t context = INT_MAX;
+    int ret = -1;
+    Json::Value msg0;
+    string challenge;
+    if(request != nullptr){
+        printf("NAPI_RA_HANDSHAKE_MSG0 request : %s\n", request);
+        Json::CharReaderBuilder builder;
+        const unique_ptr<Json::CharReader> reader(builder.newCharReader());
+        string err;
+        string response = request;
+        if (reader->parse(response.c_str(), response.c_str()+response.size(), &msg0, &err)) {
+            challenge = msg0["challenge"].asString();
+        }
+
+    }
+    //initialize the ra session
+    do {
+        ret = enclave_init_ra(g_enclave_id,
+                          &status,
+                          false,
+                          &context);
+     //Ideally, this check would be around the full attestation flow.
+    } while (SGX_ERROR_ENCLAVE_LOST == ret && enclave_lost_retry_time--);
+
+    sgx_att_key_id_t selected_key_id = {0}; //acutally not used in our case
+    /* Allocate MSG1 buf to call libukey_exchange API to retrieve MSG1 */
+    ra_samp_request_header_t *p_msg1_full = NULL;
+    p_msg1_full = (ra_samp_request_header_t*)
+                 malloc(sizeof(ra_samp_request_header_t)
+                        + sizeof(sgx_ra_msg1_t));
+    if(nullptr == p_msg1_full) {
+        ret = -1;
+    }
+
+    p_msg1_full->type = TYPE_RA_MSG1;
+    p_msg1_full->size = sizeof(sgx_ra_msg1_t);
+    //get the msg1 from core-enclave
+    sgx_ra_get_msg1_ex(&selected_key_id, context, g_enclave_id, sgx_ra_get_ga,
+                             (sgx_ra_msg1_t*)((uint8_t*)p_msg1_full
+                             + sizeof(ra_samp_request_header_t)));
+
+    // return the msg1 to enroll_app
+    string ga_base64 = base64_encode(p_msg1_full->body, p_msg1_full->size);
+    string request_base64 = base64_encode(challenge.c_str(), challenge.size());
+    Json::Value msg1;
+    msg1["ga_base64"] = ga_base64;
+    msg1["challenge_base64"] = request_base64;
+    string msg1_base64 = msg1.toStyledString();
+    
+    printf("NAPI_RA_HANDSHAKE_MSG0 return : %s\n", StringToChar(msg1_base64));
+
+    return StringToChar(msg1_base64);
+}
+
+// /* 
+// */
+// char* NAPI_RA_HANDSHAKE_MSG2(const char* request)
+// {
+//     //process the msg2 and get the msg3 from core-enclave
+//     ret = sgx_ra_proc_msg2_ex(&selected_key_id,
+//                            context,
+//                            g_enclave_id,
+//                            sgx_ra_proc_msg2_trusted,
+//                            sgx_ra_get_msg3_trusted,
+//                            p_msg2_body,
+//                            p_msg2_full->size,
+//                            &p_msg3,
+//                            &msg3_size);
+
+//     // return the msg3 to enroll_app
+//     msg3 = "base64(ga || QUOTE(SHA256(ga|gb|VK))  || CMAC-SMK(ga || QUOTE(SHA256(ga|gb|VK))))";
+//     return msg3;
+// }
+
+// /* 
+// */
+// char* NAPI_RA_GET_API_KEY(const char* request)
+// {
+//     // verify the attestation result
+//     ret = enclave_verify_att_result_mac(g_enclave_id,
+//             &status,
+//             context,
+//             (uint8_t*)&p_att_result_msg_body->platform_info_blob,
+//             sizeof(ias_platform_info_blob_t),
+//             (uint8_t*)&p_att_result_msg_body->mac,
+//             sizeof(sgx_mac_t));
+
+//     // generate unique appid and apikey from core-enclave
+//     ret = enclave_generate_appid_and_apikey(g_enclave_id,
+//             &status,
+//             context,
+//             appid,
+//             apikey);
+
+//     // return msg5 to enroll_app
+//     msg5 = base64(nonce || (APPID || APIKey) || (APPID || APIKey)SK);
+//     return msg5;
+// }
 
 }  // extern "C"
