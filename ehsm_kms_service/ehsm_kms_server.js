@@ -87,7 +87,7 @@ const server = (DB) => {
   app.use((req, res, next) => _checkParams(req, res, next, nonce_database, DB))
 
   // test couchdb ready
-  app.get('/ehsm', function name(_, res) {
+  app.get('/ehsm', function name(req, res) {
     const ACTION = req.query.Action
     if (ACTION === couchdb_apis.is_db_ready) {
       res.send('ok')
