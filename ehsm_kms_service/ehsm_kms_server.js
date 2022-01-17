@@ -86,6 +86,11 @@ const server = (DB) => {
 
   app.use((req, res, next) => _checkParams(req, res, next, nonce_database, DB))
 
+  // test couchdb ready
+  app.get('/ehsm/is_couchdb_ready', function name(_, res) {
+    res.send('ok')
+  })
+
   /**
    * router
    */
@@ -168,6 +173,12 @@ const server = (DB) => {
          * RA_GET_API_KEY
          */
         create_app_info(DB, res)
+      } else if (ACTION == enroll_apis.RA_HANDSHAKE_MSG0) {
+        /**
+         * RA_HANDSHAKE_MSG0
+         */
+        const json_str_params = JSON.stringify({ ...req.body })
+        napi_result(enroll_apis.RA_HANDSHAKE_MSG0, res, [json_str_params])
       } else {
         res.send(_result(404, 'Not Fount', {}))
       }
