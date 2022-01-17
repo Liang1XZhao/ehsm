@@ -3,7 +3,7 @@ const crypto = require('crypto')
 const logger = require('./logger')
 const { MAX_TIME_STAMP_DIFF, TIMESTAMP_LEN } = require('./constant')
 const { ehsm_kms_params } = require('./ehsm_kms_params.js')
-const { cryptographic_apis, enroll_apis } = require('./apis')
+const { cryptographic_apis, enroll_apis, couchdb_apis } = require('./apis')
 
 const _result = (code, msg, data = {}) => {
   return {
@@ -182,7 +182,8 @@ const _checkParams = function (req, res, next, nonce_database, DB) {
     logger.info(JSON.stringify(_logData))
     if (
       ACTION === enroll_apis.RA_GET_API_KEY ||
-      ACTION === enroll_apis.RA_HANDSHAKE_MSG0
+      ACTION === enroll_apis.RA_HANDSHAKE_MSG0 ||
+      ACTION === couchdb_apis.is_db_ready
     ) {
       next()
       return

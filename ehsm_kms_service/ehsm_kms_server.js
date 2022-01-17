@@ -1,7 +1,7 @@
 const express = require('express')
 
 const logger = require('./logger')
-const { cryptographic_apis, enroll_apis } = require('./apis')
+const { cryptographic_apis, enroll_apis, couchdb_apis } = require('./apis')
 const ehsm_napi = require('./ehsm_napi')
 const { ehsm_keyspec_t, ehsm_keyorigin_t } = require('./ehsm_kms_params.js')
 const { getIPAdress, _checkParams, _result } = require('./function')
@@ -87,8 +87,11 @@ const server = (DB) => {
   app.use((req, res, next) => _checkParams(req, res, next, nonce_database, DB))
 
   // test couchdb ready
-  app.get('/ehsm/is_couchdb_ready', function name(_, res) {
-    res.send('ok')
+  app.get('/ehsm', function name(_, res) {
+    const ACTION = req.query.Action
+    if (ACTION === couchdb_apis.is_db_ready) {
+      res.send('ok')
+    }
   })
 
   /**

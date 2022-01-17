@@ -15,4 +15,8 @@ const enroll_apis = {
   RA_GET_API_KEY: 'RA_GET_API_KEY',
   RA_HANDSHAKE_MSG0: 'RA_HANDSHAKE_MSG0',
 }
-module.exports = { cryptographic_apis, enroll_apis }
+
+const couchdb_apis = {
+  is_db_ready: 'is_db_ready',
+}
+module.exports = { cryptographic_apis, enroll_apis, couchdb_apis }
